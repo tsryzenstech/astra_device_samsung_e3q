@@ -57,13 +57,18 @@ devices and which audio devices exist, whether the modem is reachable through
 QRTR sockets while One UI's radio stack runs, and which SELinux mode the guest
 can live with.
 
-**M1. A guest that starts and returns.** astra's init gets a container mode
-(second stage only, no first stage, no `super`, no module loading, the host's
-`/dev` and `/proc` as they are); the staging, pivot and return scripts are
-OneOS's, with astraOS's rootfs as the image and OneOS's guards kept (no mount
-added on One UI's partitions, no shared `/data`, FRP and gatekeeper left alone,
-SELinux back to enforcing on return). Done when: the phone switches in, runs
-astrad headless (a shell over adb), and comes back to One UI with its data intact.
+**M1. A guest that starts and returns.** Settled by M0 round 2: no PID namespace, so the guest runs
+as ordinary processes under a mount namespace. astra's init has its guest mode (astra `docs/GUEST.md`, `ASTRA_GUEST=1`:
+subreaper instead of PID 1; no reboot, watchdog, `/proc/sys`, hostname, modules or host mounts), tested on a PC. What is
+left for M1 is the launcher, run as root by the OneOS-style switch:
+1. mount the guest rootfs read-only from an ext4 image under `/data` (loop; `EXT4_FS` and `BLK_DEV_LOOP` are there) in a **new mount namespace**
+   (`unshare -m`, propagation private), never in the host's;
+2. a private `/dev`: a tmpfs with only the nodes the guest needs (`dri/card0`, `input/event*`, `snd/*`, `kgsl-3d0`, `ptmx`, `null`, `zero`, `urandom`...),
+   made with `mknod` or bind mounts that the launcher undoes, so rc files' `chown`/`chmod` never reach the host's nodes;
+3. `/proc`, `/sys` (read-only), `/run`, `/tmp`, `/data` of the guest as separate private mounts; **no** mount on One UI's partitions (OneOS's check, kept);
+4. `ASTRA_GUEST=1 init second_stage`, and on the way out everything the launcher added is unmounted and the check above run again;
+5. One UI itself is left running for M1 (a headless guest with a shell over adb): nothing of the host is stopped yet.
+Done when: the phone starts the guest, `astrad` answers, the guest ends on `poweroff`, and One UI and its data are as before.
 
 **M2. A picture and touch.** SysBoard needs a display it can draw on.
 - *Software first*: Qt with Mesa's `kms_swrast`/llvmpipe on a KMS device, if

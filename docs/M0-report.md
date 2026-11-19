@@ -82,3 +82,30 @@ All plain evdev, readable as root.
 4. **No PID namespace**, probably: init runs as a subreaper in the host's PID space.
 5. **The modem stays with the host's `rild`** until M4 shows that QRTR can be shared: there is no SIM yet to test with.
 6. The S Pen and the force-feedback vibrator are ordinary evdev devices: they come cheap.
+
+## Round 2 (probe-host2.sh, 2026-11-19)
+
+- **No `PID_NS`, no `USER_NS`**: `IPC_NS`, `UTS_NS`, `TIME_NS`, `NET_NS` are there; the first two are not.
+  Confirmed: the guest can not be PID 1. Present: `OVERLAY_FS`, `EROFS_FS`, `EXT4_FS`, `F2FS_FS`, `FUSE_FS`,
+  `BLK_DEV_LOOP`, `SECCOMP`, `SECURITY_SELINUX`, `ANDROID_BINDERFS`, `DMABUF_HEAPS`, `SYNC_FILE`, `CGROUP_*`, `MEMCG`,
+  netfilter with NAT/MASQUERADE, `BT` (modules), `NFC=m`. No `CONFIG_QRTR` line, no `DRM_MSM`/`MSM_*` lines: Qualcomm's drivers are out of tree.
+- **Who has the display**: `vendor.qti.hardware.display.composer-service` (pid of the report: 1838), as `system:graphics`,
+  holds `/dev/dri/card0` many times over. The driver is `msm_drm` / `qcom,sde-kms` (`qcom,mdss_mdp@ae00000`),
+  DSI controller `ae94000.qcom,mdss_dsi_ctrl0`, a DisplayPort controller `af54000`. The panel is enabled and on.
+  The SELinux label of `card0` is `graphics_device`; of the touchscreen `input_device`; of the GPU `gpu_device`.
+  No debugfs for DRM.
+- **Audio**: `tinymix`, `tinyplay`, `tinycap` exist on the host. The card has **632 controls** and PCMs for `CODEC_DMA-LPAIF_RXTX`
+  (RX macros 0 to 6: speaker/earpiece paths), `VA` (digital mics), `MI2S`, `TDM`, `USB_AUDIO`, `SLIM` (Bluetooth),
+  `DISPLAY_PORT`, and `cs40l26-pcm` (the haptics amplifier). The routing lives in
+  `/vendor/etc/audio/sku_pineapple/mixer_paths_pineapple_mtp.xml` and `resourcemanager_pineapple_mtp.xml`, driven
+  by the PAL/AGM HAL: AAudio stays the way in. No `/vendor/etc/acdbdata` (the calibration is elsewhere).
+- **Modem**: remoteprocs `adsp`, `mss` (the modem), `cdsp` running, `spss` attached. `persist.radio.multisim.config=dsds`,
+  eSIM slot switching present. No SIM inserted.
+- **Touch**: `sec_touchscreen` reports multitouch slots up to 9, X and Y 0 to 4095, tracking id up to 65535, pressure 0 to 255
+  and `INPUT_PROP_DIRECT`: the coordinates scale 4095 to 1440 and 3120. `sec_e-pen` is a separate evdev device.
+- **Processes the host runs**, which a guest has to leave alone: `servicemanager`, `hwservicemanager`, `vndservicemanager`,
+  `surfaceflinger`, `system_server`, `zygote64`, `audioserver`, `cameraserver`, `netd`, `vold`, `keystore2`, `gatekeeperd`,
+  `rild`, `imsd`, Qualcomm's display, memtrack and perf HALs, Samsung's thermal, light, sysinput, health, vibrator, biometrics,
+  security (hermes, vaultkeeper, drk, rtts, proca, fkeymaster) and NFC (`android.hardware.nfc-service.nxp`) services.
+- **SELinux** is Enforcing; a root shell can read `/dev/dri/card0`, `/dev/input/event7` and `/dev/kgsl-3d0` as the labels above allow.
+  `/data/local/tmp` is `shell_data_file`.
