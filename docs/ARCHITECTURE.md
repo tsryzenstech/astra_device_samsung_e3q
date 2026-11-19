@@ -70,6 +70,8 @@ left for M1 is the launcher, run as root by the OneOS-style switch:
 5. One UI itself is left running for M1 (a headless guest with a shell over adb): nothing of the host is stopped yet.
 Done when: the phone starts the guest, `astrad` answers, the guest ends on `poweroff`, and One UI and its data are as before.
 
+*State: `scripts/extract-guest.py`, `scripts/make-vendor.sh` and `host/astra-guest.sh` exist and pass on a PC (arm64 under qemu, astraOS 27.1.2-rev4): start, services up, stop on SIGTERM, init ends (status 10 for the reboot request it did not carry out), the host's mounts unchanged, nothing left over. **Not yet run on the phone**: One UI's toybox (`unshare`, `mount --make-rprivate`, `stat -c`), SELinux (`ksu` domain) and the loop mounts there are the open questions.*
+
 **M2. A picture and touch.** SysBoard needs a display it can draw on.
 - *Software first*: Qt with Mesa's `kms_swrast`/llvmpipe on a KMS device, if
   M0 shows the display driver is a KMS device the guest may take, or an offscreen

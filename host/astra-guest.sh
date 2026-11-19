@@ -99,7 +99,7 @@ stop)
         p=${p#/proc/}
         [ "$(readlink "/proc/$p/root" 2>/dev/null)" = "$GUEST_DIR/root" ] || continue
         case "$(cat "/proc/$p/cmdline" 2>/dev/null | tr '\0' ' ')" in
-        "/system/bin/init second_stage"*) kill -TERM "$p" ;;
+        *"/system/bin/init second_stage"*) kill -TERM "$p" ;;
         esac
     done
     i=0
