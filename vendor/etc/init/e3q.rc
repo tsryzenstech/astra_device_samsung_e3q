@@ -1,0 +1,10 @@
+# Samsung Galaxy S24 Ultra (e3q), astraOS as a guest (docs/ARCHITECTURE.md).
+#
+# What this phone adds to astra's own init.rc. In guest mode init does not run what
+# changes the host (kernel parameters, modules, fstab, udev, hostname); the guest's
+# /dev is the launcher's private tmpfs. Nothing here may touch the host: M1 is a
+# headless guest with a shell over adb, and the display, input and audio bridges come later.
+# (SysBoard and the boot animation, which have nothing to draw on, may restart: astrad is what matters.)
+
+on early-init
+    mkdir /run/astra 0775 root system
