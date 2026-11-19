@@ -49,7 +49,7 @@ guest that looks like a Linux device.
 Each milestone is done when it has run on the phone and the result is written
 down in `reports/`. A milestone does not start before the one before is done.
 
-**M0. Measure.** Run `scripts/probe-host.sh` on the rooted phone and send the
+**M0. Measure.** (First round done: [M0-report.md](M0-report.md); second round: `scripts/probe-host2.sh`.) Run `scripts/probe-host.sh` on the rooted phone and send the
 report. It decides: whether the kernel has what a container needs (namespaces,
 overlay, QRTR), what `/dev/dri` is (Qualcomm's display driver is a KMS device on
 recent kernels; the GPU is `kgsl`, not a DRM render node), which input

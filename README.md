@@ -15,6 +15,8 @@ What is here:
 |---|---|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | the way in, why, the bridges that have to be built, the milestones M0 to M6, and what this can not give |
 | [scripts/probe-host.sh](scripts/probe-host.sh) | reads (and only reads) what the phone has: kernel options, display, input, audio, modem, camera. **Milestone 0: run it and send the report.** |
+| [docs/M0-report.md](docs/M0-report.md) | what the first probe of an S24 Ultra showed (kernel, KMS display, Adreno over kgsl, one audio card behind PAL/AGM, no SIM) |
+| [scripts/probe-host2.sh](scripts/probe-host2.sh) | the second, read-only probe: the rest of the kernel options, who holds the display, audio mixers, QRTR, SELinux |
 | [board.conf](board.conf) | the phone's parameters, as for sweet |
 
 ```sh
